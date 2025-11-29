@@ -57,6 +57,6 @@ export function gameInit(eb: EventBus, canvas: HTMLCanvasElement) {
   });
 
   g.loop(0.8, () => {
-    eb.emit("speed", [b.vel.len(), b.vel.unit()]);
+    eb.emit("speed", [b.vel.len(), b.vel.unit(), targetPos?.dist(b.pos) ?? 0]);
   });
 }
