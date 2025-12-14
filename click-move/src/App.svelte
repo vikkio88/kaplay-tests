@@ -18,8 +18,8 @@
 </script>
 
 <main>
-  <h2>{speed.toFixed(2)}</h2>
-  <h2>{distance.toFixed(2)}</h2>
+  <h2>speed: {speed.toFixed(2)}</h2>
+  <h2>distance: {distance.toFixed(2)}</h2>
   <Heading {heading} />
 </main>
 
