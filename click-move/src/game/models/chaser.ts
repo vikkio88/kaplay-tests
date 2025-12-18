@@ -1,4 +1,5 @@
-import type { GameObj, KAPLAYCtx } from "kaplay";
+import type { KAPLAYCtx } from "kaplay";
+import type { OnUpdateFn } from "./shared";
 
 function int(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -10,10 +11,7 @@ function randomPos(x: number, y: number) {
   return { x, y };
 }
 
-export function addChaser(
-  k: KAPLAYCtx,
-  onUpdate: (self: GameObj) => () => void,
-) {
+export function addChaser(k: KAPLAYCtx, onUpdate: OnUpdateFn) {
   const { x, y } = randomPos(100, 100);
 
   const chaser = k.add([
