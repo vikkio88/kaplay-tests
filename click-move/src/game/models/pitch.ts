@@ -17,32 +17,37 @@ export function addPitch(g: KAPLAYCtx) {
   ]);
 
   const t = outline;
-  g.add([
-    g.pos(x, y),
-    g.rect(w, t),
-    g.area(),
-    g.body({ isStatic: true }),
-    "pitch-wall",
-  ]);
-  g.add([
-    g.pos(x, y + h - t),
-    g.rect(w, t),
-    g.area(),
-    g.body({ isStatic: true }),
-    "pitch-wall",
-  ]);
-  g.add([
-    g.pos(x, y),
-    g.rect(t, h),
-    g.area(),
-    g.body({ isStatic: true }),
-    "pitch-wall",
-  ]);
-  g.add([
-    g.pos(x + w - t, y),
-    g.rect(t, h),
-    g.area(),
-    g.body({ isStatic: true }),
-    "pitch-wall",
-  ]);
+  const walls = [
+    g.add([
+      g.pos(x, y),
+      g.rect(w, t),
+      g.area(),
+      g.body({ isStatic: true }),
+      "pitch-wall",
+    ]),
+    g.add([
+      g.pos(x, y + h - t),
+      g.rect(w, t),
+      g.area(),
+      g.body({ isStatic: true }),
+      "pitch-wall",
+    ]),
+    g.add([
+      g.pos(x, y),
+      g.rect(t, h),
+      g.area(),
+      g.body({ isStatic: true }),
+      "pitch-wall",
+    ]),
+    g.add([
+      g.pos(x + w - t, y),
+      g.rect(t, h),
+      g.area(),
+      g.body({ isStatic: true }),
+      "pitch-wall",
+    ]),
+    ,
+  ];
+
+  return walls;
 }

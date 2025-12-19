@@ -1,9 +1,44 @@
-import k, { type Vec2 } from "kaplay";
+import k, {
+  type GameObj,
+  type KAPLAYCtx,
+  type PosComp,
+  type Vec2,
+} from "kaplay";
 import type { EventBus } from "../bus/bus";
 import { loadAssets } from "./loader";
 import { addPitch } from "./models/pitch";
 import { addPlayer, PLAYER_ACCELERATION } from "./models/player";
-const MAX_CHASERS = 5;
+
+const makeBall = (g: KAPLAYCtx, pos?: PosComp) => [
+  g.circle(10),
+  g.body({ mass: 0.05 }),
+  g.area(),
+  g.anchor("center"),
+  pos ?? g.pos(500, 500),
+  "ball",
+];
+function addBounce(g: KAPLAYCtx, ball: GameObj) {
+  if (!ball.onCollide) return;
+
+  ball.onCollide("pitch-wall", (wall: GameObj) => {
+    const w = wall.width ?? 0;
+    const h = wall.height ?? 0;
+
+    if (w > h) {
+      ball.vel.y *= -1;
+    } else {
+      ball.vel.x *= -1;
+    }
+  });
+
+  ball.onUpdate(() => {
+    ball.vel = ball.vel.scale(0.999);
+
+    if (ball.vel.len() < 10) {
+      ball.vel = g.Vec2.ZERO;
+    }
+  });
+}
 
 export function gameInit(eb: EventBus, canvas: HTMLCanvasElement) {
   const g = k({
@@ -21,24 +56,51 @@ export function gameInit(eb: EventBus, canvas: HTMLCanvasElement) {
       },
     },
   });
+  // g.debug.inspect = true;
   loadAssets(g);
   addPitch(g);
 
-  // g.debug.inspect = true;
-
   let targetPos: Vec2 | undefined = undefined;
 
-  // const chaserLogic = (chaser: GameObj) => () => {
-  //   if (!targetPos || chaser.pos.dist(targetPos) < 5) return;
-  //   chaser.moveTo(targetPos, 400);
-  // };
-  // let chasers: GameObj[] = [];
-  // chasers.push(addChaser(g, chaserLogic));
-
   let player = addPlayer(g);
+  let ball: GameObj | undefined = g.add(makeBall(g));
+  let aiming = false;
+  let hasBall = false;
+
+  player.onCollide((o) => {
+    if (o.is("ball") && ball) {
+      ball.destroy();
+      ball = undefined;
+      player.add([g.circle(5), g.pos(0, 20), g.anchor("center"), "ball_owned"]);
+      hasBall = true;
+    }
+  });
+
+  g.onMousePress((m) => {
+    if (m !== "right") return;
+    player.vel = g.Vec2.ZERO;
+    aiming = true;
+  });
 
   g.onMouseRelease((m) => {
+    aiming = false;
     targetPos = g.mousePos();
+
+    if (m === "right" && hasBall) {
+      let mx = targetPos.x < player.pos.x ? -1 : 1;
+      let my = targetPos.y < player.pos.y ? -1 : 1;
+      const t = g.vec2(mx * 40, my * 40);
+      ball = g.add(makeBall(g, g.pos(player.pos.add(t))));
+      const direction = targetPos.sub(player.pos).unit();
+      const strenght = targetPos.dist(player.pos) * 2;
+      const impulse = direction.scale(strenght);
+      ball.applyImpulse(impulse);
+      player.removeAll("ball_owned");
+      hasBall = false;
+      addBounce(g, ball);
+      return;
+    }
+
     if (m === "left") {
       move();
       return;
@@ -49,18 +111,28 @@ export function gameInit(eb: EventBus, canvas: HTMLCanvasElement) {
     if (!targetPos) return;
 
     const c = g.add([g.circle(5), g.pos(targetPos), g.timer()]);
-
+    c.wait(0.5, () => {
+      c.destroy();
+    });
     const direction = targetPos.sub(player.pos).unit();
     const strenght = PLAYER_ACCELERATION;
     const impulse = direction.scale(strenght);
     player.applyImpulse(impulse);
 
     player.flipX = targetPos.x < player.pos.x;
-
-    c.wait(1, () => {
-      c.destroy();
-    });
   }
+
+  g.onDraw(() => {
+    if (!aiming || !hasBall) return;
+    const mousePos = g.mousePos();
+    player.flipX = mousePos.x < player.pos.x;
+    g.drawLine({
+      p1: player.pos.add(0, 40),
+      p2: mousePos,
+      width: 2,
+      color: g.rgb(255, 255, 255),
+    });
+  });
 
   // g.loop(5, () => {
   //   const nChaser = addChaser(g, chaserLogic);
