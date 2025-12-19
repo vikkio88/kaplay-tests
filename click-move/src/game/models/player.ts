@@ -7,7 +7,7 @@ export function addPlayer(k: KAPLAYCtx) {
   const player = k.add([
     k.sprite("player"),
     k.pos(100, 100),
-    k.scale(2),
+    k.scale(1),
     k.anchor("center"),
     k.body(),
     k.area(),

@@ -1,44 +1,9 @@
-import k, {
-  type GameObj,
-  type KAPLAYCtx,
-  type PosComp,
-  type Vec2,
-} from "kaplay";
+import k, { type GameObj, type Vec2 } from "kaplay";
 import type { EventBus } from "../bus/bus";
 import { loadAssets } from "./loader";
+import { addBounce, makeBall } from "./models/ball";
 import { addPitch } from "./models/pitch";
 import { addPlayer, PLAYER_ACCELERATION } from "./models/player";
-
-const makeBall = (g: KAPLAYCtx, pos?: PosComp) => [
-  g.circle(10),
-  g.body({ mass: 0.05 }),
-  g.area(),
-  g.anchor("center"),
-  pos ?? g.pos(500, 500),
-  "ball",
-];
-function addBounce(g: KAPLAYCtx, ball: GameObj) {
-  if (!ball.onCollide) return;
-
-  ball.onCollide("pitch-wall", (wall: GameObj) => {
-    const w = wall.width ?? 0;
-    const h = wall.height ?? 0;
-
-    if (w > h) {
-      ball.vel.y *= -1;
-    } else {
-      ball.vel.x *= -1;
-    }
-  });
-
-  ball.onUpdate(() => {
-    ball.vel = ball.vel.scale(0.999);
-
-    if (ball.vel.len() < 10) {
-      ball.vel = g.Vec2.ZERO;
-    }
-  });
-}
 
 export function gameInit(eb: EventBus, canvas: HTMLCanvasElement) {
   const g = k({
@@ -89,7 +54,7 @@ export function gameInit(eb: EventBus, canvas: HTMLCanvasElement) {
     if (m === "right" && hasBall) {
       let mx = targetPos.x < player.pos.x ? -1 : 1;
       let my = targetPos.y < player.pos.y ? -1 : 1;
-      const t = g.vec2(mx * 40, my * 40);
+      const t = g.vec2(mx * 30, my * 30);
       ball = g.add(makeBall(g, g.pos(player.pos.add(t))));
       const direction = targetPos.sub(player.pos).unit();
       const strenght = targetPos.dist(player.pos) * 2;
@@ -127,7 +92,7 @@ export function gameInit(eb: EventBus, canvas: HTMLCanvasElement) {
     const mousePos = g.mousePos();
     player.flipX = mousePos.x < player.pos.x;
     g.drawLine({
-      p1: player.pos.add(0, 40),
+      p1: player.pos.add(0, 20),
       p2: mousePos,
       width: 2,
       color: g.rgb(255, 255, 255),
